@@ -93,6 +93,23 @@ $ curl localhost:8888
 $ curl <IP_VM>:8888
 ```
 
+On peut aussi ajouter un fichier de la machine hôte à l'image avec `COPY` :
+
+> Le chemin précisé est résolu depuis le dossier actuel où sera lancé la commande `docker build`. Donc le fichier `index.html` spécifié ci-dessous se trouve juste à côté du `Dockerfile`.
+
+```bash
+$ cat Dockerfile
+FROM ubuntu
+
+RUN apt update -y
+
+RUN apt install -y nginx
+
+COPY index.html /usr/share/nginx/html/
+
+CMD [ "/usr/sbin/nginx", "-g", "daemon off;" ]
+```
+
 ![Waiting for Docker](./img/waiting_for_docker.jpg)
 
 ## Construisez votre propre Dockerfile
@@ -130,4 +147,10 @@ LogLevel warn
 
 ➜ Et aussi, la commande pour lancer Apache à la main sur un système Debian par exemple c'est : `apache2 -DFOREGROUND`.
 
-🌞 **Livrez votre `Dockerfile` dans le compte-rendu**
+🌞 **OU ALORS**
+
+- si t'as un truc à toi, un projet, un serveur de chat, de jeu, j'en sais rien
+- go le conteneuriser et me rendre ça
+- je peux aider si c'est un truc un peu complexe
+
+🌞 **Dans les deux cas, j'attends juste votre `Dockerfile` dans le compte-rendu**
