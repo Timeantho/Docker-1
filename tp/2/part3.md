@@ -247,4 +247,31 @@ $ terraform destroy
     - membre du groupe `docker`
   - l'image Docker `alpine:latest` doit être téléchargée
 
+🌞 **Moar `cloud-init` and Terraform configuration**
+
+- adaptez le plan Terraform et le fichier `cloud-init` précédents
+- un `docker-compose.yml` est automatiquement déposé
+  - il se situe dans `/opt/wikijs`
+  - c'est le `docker-compose.yml` de la doc officielle de WikiJS (pareil qu'au TP1)
+- le `docker-compose.yml` est automatiquement démarré
+- par défaut, WikiJS écoute sur le port 3000
+  - vous devrez modifier le `docker-compose.yml` pour que ce port soit partagé sur le port 10101 de la machine hôte
+- le Network Security Group associé à l'interface autorise le traffic sur le port 10101 spécifiquement
+
+🌞 **Play with compose**
+
+- ajoutez dans le `docker-compose.yml` un troisième conteneur NGINX
+  - agit comme un reverse proxy pour accéder au WikiJS
+  - uniquement une connexion chiffrée avec TLS (`https://` quoi)
+    - générez un certificat auto-signé pour ça
+  - il écoute sur le port 443 dans le conteneur (la conf NGINX)
+  - il est dispo sur le port 443 de l'hôte (partage de port Docker)
+- ce conteneur reverse-proxy est le **seul** moyen d'accéder à WikiJS
+  - il faut enlever le partage de port du conteneur WikiJS
+- ajouter des `healthcheck` dans le `docker-compose.yml`
+  - une mécanique pour qu'un conteneur soit déterminé comme en bonne santé quand il valide une commande
+  - le conteneur NGINX doit être marqué comme *healthy* quand son port 443 est joignable
+  - le conteneur WikiJS doit être marqué comme *healthy* quand son port 3000 est joignable
+- ajouter un `depends_on` pour forcer NGINX à démarrer après WikiJS
+
 ![Terraforming Mars](./img/terraforming_mars.jpg)
