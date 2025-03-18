@@ -232,6 +232,8 @@ $ terraform destroy
   - 1 IP Privée
 - les IPs privées doivent permettre aux deux machines de se `ping`
 
+⚠️⚠️⚠️ **Je vous recommande TRES fortement de changer le préfixe que vous avez choisi dans le fichier `variables.tf` (pour chaque nouveau plan Terraform).
+
 > Pour accéder à `node2`, il faut donc d'abord se connecter à `node1`, et effectuer une connexion SSH vers `node2`. Vous pouvez ajouter l'option `-j` de SSH pour faire ~~des dingueries~~ un rebond SSH (`-j` comme Jump). `ssh -j node1 node2` vous connectera à `node2` en passant par `node1`.
 
 ## 4. cloud-iniiiiiiiiiiiiit
