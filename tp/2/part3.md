@@ -149,7 +149,7 @@ resource "azurerm_linux_virtual_machine" "main" {
 ```hcl
 variable "prefix" {
   description = "da prefix"
-  default = "tp2_magueule"
+  default = "tp2magueule"
 }
 variable "location" {
   description = "da location"
