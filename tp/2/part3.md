@@ -20,6 +20,9 @@ Terraform va permettre d'automatiser la création de ressources dans Azure, *Res
   - [2. Copy paste](#2-copy-paste)
   - [3. Do it yourself](#3-do-it-yourself)
   - [4. cloud-iniiiiiiiiiiiiit](#4-cloud-iniiiiiiiiiiiiit)
+    - [A. Un premier tf + cloud-init](#a-un-premier-tf--cloud-init)
+    - [B. Go further](#b-go-further)
+    - [C. Bonus](#c-bonus)
 
 ## 1. Introooo
 
@@ -232,33 +235,58 @@ $ terraform destroy
   - 1 IP Privée
 - les IPs privées doivent permettre aux deux machines de se `ping`
 
-⚠️⚠️⚠️ **Je vous recommande TRES fortement de changer le préfixe que vous avez choisi dans le fichier `variables.tf` (pour chaque nouveau plan Terraform).
+⚠️⚠️⚠️ **Go changer le préfixe que vous avez choisi dans le fichier `variables.tf`** (recommandé pour chaque nouveau plan Terraform, pour pas que Azure/Terraform soient panique avec le fait d'avoir déjà créé des ressources qui portent ces noms).
 
 > Pour accéder à `node2`, il faut donc d'abord se connecter à `node1`, et effectuer une connexion SSH vers `node2`. Vous pouvez ajouter l'option `-j` de SSH pour faire ~~des dingueries~~ un rebond SSH (`-j` comme Jump). `ssh -j node1 node2` vous connectera à `node2` en passant par `node1`.
 
 ## 4. cloud-iniiiiiiiiiiiiit
 
+### A. Un premier tf + cloud-init
+
 🌞 **Intégrer la gestion de `cloud-init`**
 
 - faire pop une VM Ubuntu 22.04 qui utilise `cloud-init` au premier boot
-- ce `cloud-init` doit faire pareil qu'à la partie précédente :
+  - on parle donc d'un plan `main.tf` qui pop qu'une seule machine
+  - vous devez ajouter une ligne pour que la machine utilise un fichier `cloud-init.txt`
+- ce `cloud-init.txt` doit faire pareil qu'à la partie précédente :
   - installer Docker sur la machine
-  - ajoutez un user qui porte votre pseudo
+  - ajoutez un user, avec un nom différent que le user créé par Azure
     - il a un password défini
     - clé SSH publique déposée
     - membre du groupe `docker`
   - l'image Docker `alpine:latest` doit être téléchargée
 
+
+🌞 **Proof !**
+
+- livrez votre `main.tf` dans le compte-rendu
+- livrez votre `cloud-init.txt` dans le compte-rendu
+- vous pouvez vous connecter sans password en SSH sur le nouveau user (ptite commande `ssh` dans le compte-rendu)
+
+### B. Go further
+
 🌞 **Moar `cloud-init` and Terraform configuration**
 
-- adaptez le plan Terraform et le fichier `cloud-init` précédents
-- un `docker-compose.yml` est automatiquement déposé
-  - il se situe dans `/opt/wikijs`
-  - c'est le `docker-compose.yml` de la doc officielle de WikiJS (pareil qu'au TP1)
-- le `docker-compose.yml` est automatiquement démarré
-- par défaut, WikiJS écoute sur le port 3000
-  - vous devrez modifier le `docker-compose.yml` pour que ce port soit partagé sur le port 10101 de la machine hôte
-- le Network Security Group associé à l'interface autorise le traffic sur le port 10101 spécifiquement
+- adaptez le plan Terraform `main.tf` et le fichier `cloud-init.txt` précédents
+- avec `cloud-init` : déposez un `docker-compose.yml` automatiquement dans la machine
+  - il doit être déposé au chemin : `/opt/wikijs/docker-compose.yml`
+  - pour le contenu, c'est le `docker-compose.yml` de la doc officielle de WikiJS (pareil qu'au TP1)
+- toujours avec `cloud-init`, le `docker-compose.yml` est automatiquement démarré
+- il faudra éditer le `docker-compose.yml` :
+  - par défaut, WikiJS écoute sur le port 3000
+  - vous devrez modifier le `docker-compose.yml` pour que **ce port soit partagé sur le port 10101 de la machine hôte**
+- côté Terraform, dans le `main.tf` :
+  - le Network Security Group associé à l'interface autorise le traffic sur le port 10101 spécifiquement
+
+🌞 **Proof !**
+
+- livrez votre `main.tf` dans le compte-rendu
+- livrez votre `cloud-init.txt` dans le compte-rendu
+- livrez votre `docker-compose.yml` dans le compte-rendu
+- vous pouvez vous connecter sur l'interface Web de WikiJS en visitant `http://IP:10101`
+  - un ptit `curl` dans le compte-rendu
+
+### C. Bonus
 
 🌞 **Play with compose**
 
