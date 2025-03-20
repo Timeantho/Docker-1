@@ -33,11 +33,11 @@ Il restera quelques étapes manuelles à effectuer, afin de monter un setup mini
 - un nom de réseau (ce que vous voulez)
 - le mode VXLAN
 - Onglet `Conf`
-  - spécifiez `eth1` en interface réseau physique (l'interface qui a une IP statique sur votre machine)
+  - spécifiez en interface réseau physique l'interface qui a une IP statique sur votre machine (genre `eth0` ou `enp0s3` ou autre chose, j'peux pas deviner :d)
   - définissez `vxlan_bridge` en nom de bridge (attention aux commandes plus bas si vous choisissez un autre nom)
 - Onglet `Addresses`
-  - spécifiez une IP de départ dans `First IPv4 address`, par exemple `10.220.220.1/24`
-  - indiquez aussi ainsi qu'un nombre de machines possibles dans ce réseau avec `Size`
+  - spécifiez une IP de départ dans `First IPv4 address`, par exemple `10.220.220.1`
+  - indiquez aussi ainsi qu'un nombre de machines possibles dans ce réseau avec `Size` (peu importe pour nos tests, mettez genre 50)
 - Onglet `Context`
   - spécifier une adresse de réseau et un masque dans les champs dédiés, par exemple `10.220.220.0` et `255.255.255.0`
 
@@ -67,4 +67,33 @@ firewall-cmd --add-masquerade --permanent
 
 # on reload le firewall pour que les deux commandes précédentes prennent effet
 firewall-cmd --reload
+```
+
+➜ Je vous conseille **très fort** de faire en sorte que ce script s'exécute automatiquement au démarrage. 
+
+En faisant un ptit service systemd par exemple, que vous pouvez `enable` ensuite :
+
+```bash
+# on suppose que le script est dans /opt/vxlan.sh
+$ ls /opt
+vxlan.sh
+
+$ cat /etc/systemd/system/vxlan.service
+[Unit]
+Description=Setup VXLAN interface for ONE
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/bin/bash /opt/vxlan.sh
+
+[Install]
+WantedBy=multi-user.target
+
+# quand vous créez ce fichier, ordonnez à systemd de le lire
+$ sudo systemcl daemon-reload
+
+# puis on peut le manipuler avec systemctl
+$ sudo systemctl start vxlan
+$ sudo systemctl enable vxlan
 ```

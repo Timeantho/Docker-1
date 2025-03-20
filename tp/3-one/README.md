@@ -215,3 +215,5 @@ Identity added: /var/lib/one/.ssh/id_rsa (oneadmin@frontend)
 # IV. Ajouter d'un noeud et VXLAN
 
 ➜ [**Et l'dernier ! Doc dédié à la partie IV.**](./kvm2.md)
+
+![Someone else](./img/someone_else.png)
