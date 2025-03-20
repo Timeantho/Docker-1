@@ -2,6 +2,9 @@
 
 - [TP1 : Containers](./1/README.md)
 - [TP2 : spawn moar vm moar cloud much cloud : une approche programmatique](./2/README.md)
+- TP3 au choiiix :
+  - [Self-hosted private cloud platform](./3-one/README.md)
+  - [Ansible](./3-ansible/README.md)
 
 ## Rendu de TP
 
