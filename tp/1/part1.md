@@ -98,11 +98,10 @@ $ docker run --name web -d -v /path/to/html:/usr/share/nginx/html -p 8888:80 ngi
 
 🌞 **Utiliser la commande `docker run`**
 
-- lancer un conteneur `nginx`
-  - conf par défaut étou étou, simple pour le moment
-  - par défaut il écoute sur le port 80 et propose une page d'accueil
-- le conteneur doit être lancé avec un partage de port
-  - le port 9999 de la machine hôte doit rediriger vers le port 80 du conteneur
+```
+docker run -d --name nginx -p 9999:80 nginx
+```
+
 
 🌞 **Rendre le service dispo sur internet**
 
