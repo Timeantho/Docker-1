@@ -36,8 +36,151 @@ Dans cette partie, je vous fait :
 
 🌞 **Vous me livrerez vos deux fichiers en compte-rendu**
 
-- `main.tf` (et éventuellement d'autres fichiers `.tf`)
-- `cloud-init.txt`
+```
+provider "azurerm" {
+  features {}
+}
+
+resource "azurerm_resource_group" "chat_rg" {
+  name     = "chat-rg"
+  location = "East US"
+}
+
+resource "azurerm_virtual_network" "chat_vnet" {
+  name                = "chat-vnet"
+  address_space       = ["10.3.0.0/16"]
+  location            = azurerm_resource_group.chat_rg.location
+  resource_group_name = azurerm_resource_group.chat_rg.name
+}
+
+resource "azurerm_subnet" "chat_subnet" {
+  name                 = "chat-subnet"
+  resource_group_name  = azurerm_resource_group.chat_rg.name
+  virtual_network_name = azurerm_virtual_network.chat_vnet.name
+  address_prefixes     = ["10.3.1.0/24"]
+}
+
+resource "azurerm_network_security_group" "chat_nsg" {
+  name                = "chat-nsg"
+  location            = azurerm_resource_group.chat_rg.location
+  resource_group_name = azurerm_resource_group.chat_rg.name
+}
+
+resource "azurerm_network_security_rule" "chat_ssh_rule" {
+  name                        = "SSH-chat-rule"
+  priority                    = 100
+  direction                   = "Inbound"
+  access                      = "Allow"
+  protocol                    = "Tcp"
+  source_port_range           = "*"
+  destination_port_range      = "22"
+  source_address_prefix       = "*"
+  destination_address_prefix  = "*"
+  network_security_group_name = azurerm_network_security_group.chat_nsg.name
+}
+
+resource "azurerm_public_ip" "chat1_public_ip" {
+  name                = "chat1-public-ip"
+  location            = azurerm_resource_group.chat_rg.location
+  resource_group_name = azurerm_resource_group.chat_rg.name
+  allocation_method   = "Dynamic"
+}
+
+resource "azurerm_public_ip" "chat2_public_ip" {
+  name                = "chat2-public-ip"
+  location            = azurerm_resource_group.chat_rg.location
+  resource_group_name = azurerm_resource_group.chat_rg.name
+  allocation_method   = "Dynamic"
+}
+
+resource "azurerm_network_interface" "chat1_nic" {
+  name                = "chat1-nic"
+  location            = azurerm_resource_group.chat_rg.location
+  resource_group_name = azurerm_resource_group.chat_rg.name
+  ip_configuration {
+    name                          = "chat1-internal"
+    subnet_id                     = azurerm_subnet.chat_subnet.id
+    private_ip_address_allocation = "Dynamic"
+    public_ip_address_id          = azurerm_public_ip.chat1_public_ip.id
+  }
+}
+
+resource "azurerm_network_interface" "chat2_nic" {
+  name                = "chat2-nic"
+  location            = azurerm_resource_group.chat_rg.location
+  resource_group_name = azurerm_resource_group.chat_rg.name
+  ip_configuration {
+    name                          = "chat2-internal"
+    subnet_id                     = azurerm_subnet.chat_subnet.id
+    private_ip_address_allocation = "Dynamic"
+    public_ip_address_id          = azurerm_public_ip.chat2_public_ip.id
+  }
+}
+
+resource "azurerm_linux_virtual_machine" "chat1_vm" {
+  name                = "chat1-vm"
+  resource_group_name = azurerm_resource_group.chat_rg.name
+  location            = azurerm_resource_group.chat_rg.location
+  size                = "Standard_B1s"
+  admin_username      = "chatuser"
+  network_interface_ids = [azurerm_network_interface.chat1_nic.id]
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "18.04-LTS"
+    version   = "latest"
+  }
+
+  custom_data = filebase64("${path.module}/cloud-init.txt")
+}
+
+resource "azurerm_linux_virtual_machine" "chat2_vm" {
+  name                = "chat2-vm"
+  resource_group_name = azurerm_resource_group.chat_rg.name
+  location            = azurerm_resource_group.chat_rg.location
+  size                = "Standard_B1s"
+  admin_username      = "chatuser"
+  network_interface_ids = [azurerm_network_interface.chat2_nic.id]
+
+  os_disk {
+    caching              = "ReadWrite"
+    storage_account_type = "Standard_LRS"
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "18.04-LTS"
+    version   = "latest"
+  }
+
+  custom_data = filebase64("${path.module}/cloud-init.txt")
+}
+
+
+cloud init.txt
+
+#cloud-config
+users:
+  - name: chatuser
+    sudo: ['ALL=(ALL) NOPASSWD:ALL']
+    groups: sudo
+    ssh_authorized_keys:
+      - ssh-rsa AAAAB3... <your-public-key>
+
+package_upgrade: true
+packages:
+  - python3
+  - python3-pip
+  - ansible
+
+```
 
 ### B. Setup sur votre poste
 
@@ -183,8 +326,17 @@ $ ansible-playbook -i hosts.ini first.yml
 
 🌞 **Pour le compte-rendu**
 
-- `nginx.yml` et `hosts.ini` dans le compte-rendu
-- un ptit `curl` vers l'interface Web NGINX
+```
+hosts.ini
+
+[tp3]
+10.3.1.11
+10.3.1.12
+
+[web]
+10.3.1.11
+
+```
 
 > N'oubliez pas d'ouvrir le port 443 avec une règle Azure (modifiez et ré-appliquez votre fichier `main.tf`).
 
@@ -210,4 +362,54 @@ $ ansible-playbook -i hosts.ini first.yml
 
 - `mariadb.yml` (ou `mysql.yml`) et `hosts.ini` dans le compte-rendu
 
-> N'oubliez pas d'ouvrir le port 3306 avec une règle Azure (modifiez et ré-appliquez votre fichier `main.tf`).
+```
+mariadb.yml (code copié collé depuis le site officiel de mariadb)
+
+---
+- name: Install and configure MariaDB
+  hosts: db
+  become: true
+
+  tasks:
+    - name: Install MariaDB server
+      dnf:
+        name: mariadb-server
+        state: present
+
+    - name: Enable and start MariaDB service
+      service:
+        name: mariadb
+        state: started
+        enabled: true
+
+    - name: Create a database for chat app
+      mysql_db:
+        name: chat_db
+        state: present
+
+    - name: Create a user and grant all privileges on chat_db
+      mysql_user:
+        name: chat_user
+        password: chat_password123
+        priv: 'chat_db.*:ALL'
+        state: present
+
+    - name: Open port 3306 in the firewall
+      firewalld:
+        port: 3306/tcp
+        permanent: true
+        state: enabled
+
+
+hosts.ini
+[tp3]
+10.3.1.11
+10.3.1.12
+
+[web]
+10.3.1.11
+
+[db]
+10.3.1.12
+
+```
